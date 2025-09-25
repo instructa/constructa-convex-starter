@@ -199,7 +199,7 @@ function BoardPage() {
           </Button>
           <Button onClick={handleAddNote}>Add note</Button>
           <Link
-            to="/board/"
+            to="/board"
             className="rounded-md border border-input px-3 py-2 text-sm text-muted-foreground transition hover:border-primary hover:text-foreground"
             preload="intent"
           >
