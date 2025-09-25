@@ -4,6 +4,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { convexQuery, useConvexMutation } from "@convex-dev/react-query";
 import usePresence from "@convex-dev/presence/react";
 
+import { ConvexHttpClient } from "convex/browser";
 import { api } from "../../../convex/_generated/api";
 import type { Id } from "../../../convex/_generated/dataModel";
 import { CursorLayer } from "~/components/CursorLayer";
@@ -20,11 +21,11 @@ import {
 import { Input } from "~/components/ui/input";
 import { slugToTitle, toSlug } from "~/lib/slug";
 import { colorFromSeed } from "~/lib/colors";
-import { ensureBoard } from "~/lib/convex.server";
 import { persistDisplayName, readDisplayName } from "~/lib/display-name";
 import { getSessionId } from "~/lib/session";
 import { useClientValue } from "~/lib/use-client-value";
 import { useThrottle } from "~/lib/throttle";
+import { getConvexUrl } from "~/lib/convex-url";
 
 const NOTE_WIDTH = 260;
 const NOTE_HEIGHT = 180;
@@ -36,7 +37,14 @@ export const Route = createFileRoute("/board/$boardId")({
       throw new Response("Board not found", { status: 404 });
     }
 
-    await ensureBoard({ slug, name: slugToTitle(slug) });
+    const ensureInput = { slug, name: slugToTitle(slug) };
+    if (typeof window === "undefined") {
+      const serverClient =
+        context.convexQueryClient.serverHttpClient ?? new ConvexHttpClient(getConvexUrl());
+      await serverClient.mutation(api.boards.ensure, ensureInput);
+    } else {
+      await context.convexClient.mutation(api.boards.ensure, ensureInput);
+    }
     const board = await context.queryClient.ensureQueryData({
       ...convexQuery(api.boards.getBySlug, { slug }),
       gcTime: 60_000,
