@@ -1,9 +1,12 @@
+import type { ConvexQueryClient } from "@convex-dev/react-query"
 import type { QueryClient } from "@tanstack/react-query"
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
 import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from "@tanstack/react-router"
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools"
 import type * as React from "react"
 import { Toaster } from "sonner"
+import type { ConvexReactClient } from "convex/react"
+import { ConvexProvider } from "convex/react"
 import { DefaultCatchBoundary } from "~/components/DefaultCatchBoundary"
 import { NotFound } from "~/components/NotFound"
 import { ThemeInitScript } from "~/components/theme-init-script"
@@ -16,6 +19,8 @@ import customCss from "../styles/custom.css?url"
 
 export const Route = createRootRouteWithContext<{
     queryClient: QueryClient
+    convexClient: ConvexReactClient
+    convexQueryClient: ConvexQueryClient
 }>()({
     loader: () => getTheme(),
     head: () => ({
@@ -74,15 +79,19 @@ export const Route = createRootRouteWithContext<{
 })
 
 function RootComponent() {
+    const { convexClient, convexQueryClient: _convexQueryClient } = Route.useRouteContext()
+    void _convexQueryClient
     return (
         <RootDocument>
-            <Outlet />
-            {import.meta.env.DEV ? (
-                <>
-                    <ReactQueryDevtools buttonPosition="bottom-right" />
-                    <TanStackRouterDevtools />
-                </>
-            ) : null}
+            <ConvexProvider client={convexClient}>
+                <Outlet />
+                {import.meta.env.DEV ? (
+                    <>
+                        <ReactQueryDevtools buttonPosition="bottom-right" />
+                        <TanStackRouterDevtools />
+                    </>
+                ) : null}
+            </ConvexProvider>
         </RootDocument>
     )
 }
