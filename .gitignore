@@ -32,3 +32,6 @@ package-lock.json
 yarn.lock
 src/routeTree.gen.ts
 docs-libs
+.env
+.env.local
+.env*
